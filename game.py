@@ -5,7 +5,7 @@ from player import Player
 with open('settings.json', encoding='utf-8') as f:
     SETTINGS = json.load(f)
 
-effects = ['magnifier', 'sigarets', 'beer', 'knife', 'handcuffs']
+effects = ['🔎 лупа', '🚬 сигареты', '🍺 пиво', '🔪 нож', '⛓️ наручники']
 
 class Game:
 
@@ -16,6 +16,7 @@ class Game:
         self.first = Player(name1, id1, hp, damage)
         self.second = Player(name2, id2, hp, damage)
         self.normal_damage = damage
+        self.max_hp = hp
         self.inventory_size = inventory_size
         self.que_size = que_size
         self.que = []
@@ -34,7 +35,6 @@ class Game:
             while len(self.second.inventory) != self.inventory_size: 
                 self.second.inventory.pop(0)
 
-
     def new_que(self) -> None:
         live_bullet = random.randint(1, self.que_size - 2)
         blank_bullet = random.randint(2, self.que_size - live_bullet)
@@ -48,8 +48,8 @@ class Game:
         self.second.handcuffs = False
 
     def shot(self, shooter: object, victim: object) -> str:
-        if self.que[0] == True:
+        if self.que.pop(0) == True:
             victim.hp -= shooter.damage
-            return 'БОЕВЫМ'
-        else: return 'ХОЛОСТЫМ'
+            return '🔴БОЕВЫМ🔴'
+        else: return '⚪ХОЛОСТЫМ⚪'
         
