@@ -1,5 +1,6 @@
 from threading import Thread
 import time
+import random
 from dotenv import load_dotenv
 from os import getenv
 import vk
@@ -25,7 +26,7 @@ def message(user_id, message, keyboard=None, delay=True) -> None:
             message=message,    
             random_id=get_random_id(),   
             )
-    else:  vk.messages.send(
+    else: vk.messages.send(
             user_id=user_id,
             random_id=get_random_id(),
             keyboard=keyboard.get_keyboard(),
@@ -141,7 +142,7 @@ def main():
     global admission
     lobby = {}
     admission = {}
-    for event in longpoll.listen(): 
+    for event in longpoll.listen():
         if event.type ==  VkEventType.MESSAGE_NEW and event.to_me and event.from_user: 
             if event.message.lower().startswith('играть'):
                 user_id = event.user_id
@@ -156,16 +157,16 @@ def main():
                     }
                     if screen_name not in admission: admission[screen_name] = 0
                     try:
-                        if event.message.split(' ')[1].lower() == 'приват': message(user_id, '👽Вы вошли в приватное лобби👽')
+                        if event.message.split(' ')[1].lower() == 'приват': message(user_id, f'👽Вы вошли в приватное лобби. Ваш ник для подключения: {screen_name}👽')
                         lobby[screen_name]['private'] = True
                     except: pass
 
                     lobby_ = [slot + '\n' for slot in lobby if lobby[slot]['private'] != True]
-                    message(user_id, f'🟩Используйте Присоединиться <nick> для того, чтобы начать сессию.🟩 \nВ лобби: \n{"".join(lobby_)}')
+                    message(user_id, f'🟩Используйте Присоединиться <nick> для того, чтобы начать сессию.🟩 \nВ лобби: \n{"".join(lobby_)}', keyboard=Keyboard.lobby())
 
-                else: message(user_id, f'Между играми выдерживайте перерыв в 15 минут (ограничения вк). Вам осталось ждать: {TIME - admission[user_id] - time.time()} секунд')
+                else: message(user_id, f'Между играми выдерживайте перерыв в 15 минут (ограничения вк). Вам осталось ждать: {int(TIME - time.time() + admission[screen_name])} секунд')
 
-            elif event.message.lower().startswith('присоединиться'):
+            elif event.message.lower().startswith('присоединиться') and len(str(event.message.lower()).split(' ')) != 1:
                 user_id = event.user_id
                 user_get = vk.users.get(user_ids=(user_id), fields='screen_name')[0]
                 screen_name = user_get['screen_name']
@@ -180,7 +181,35 @@ def main():
                         th = Thread(target=session, args=(first_id, first_name, user_id, screen_name, ))
                         th.start()
 
-                else: message(user_id, 'Некорректное имя')
+                else: message(user_id, 'Некорректное имя', keyboard=Keyboard.lobby())
+
+            elif event.message.lower() == 'случайная сессия':
+                user_id = event.user_id
+                user_get = vk.users.get(user_ids=(user_id), fields='screen_name')[0]
+                screen_name = user_get['screen_name']
+                lobby_ = [slot for slot in lobby if lobby[slot]['private'] != True and lobby[slot]['name'] != screen_name]
+                if len(lobby) != 1 and screen_name in lobby_:
+                    first_name = random.choice(lobby_)
+                    first_id = lobby[first_name]
+                    if screen_name in admission and time.time() - admission[screen_name] > TIME and time.time() - admission[first_name] > TIME:
+                        lobby.pop(first_name)
+                        try: lobby.pop(screen_name)
+                        except: pass
+                        th = Thread(target=session, args=(first_id, first_name, user_id, screen_name, ))
+                        th.start()
+                else: message(user_id, 'Войдите в лобби или лобби пустое, подождите следующего игрока', keyboard=Keyboard.lobby())
+
+            elif event.message.lower() == 'покинуть лобби':
+                user_id = event.user_id
+                user_get = vk.users.get(user_ids=(user_id), fields='screen_name')[0]
+                screen_name = user_get['screen_name']
+                if screen_name in lobby:
+                    lobby.pop(screen_name)
+                    message(user_id, 'Вы вышли из лобби')
+
+            elif event.message.lower() == 'начало': 
+                message(event.user_id, 'Используйте команду "играть". \nОзнакомьтесь с правилами: https://vk.com/buckshotroulettebot?w=wall-224193723_1')
+            
 
 if __name__ == '__main__': 
     vk_session = vk_api.VkApi(token=getenv("TOKEN"))  

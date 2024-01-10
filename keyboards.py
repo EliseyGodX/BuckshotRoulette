@@ -18,3 +18,9 @@ class Keyboard:
         keyboard.add_button('Противника', color=VkKeyboardColor.PRIMARY)
         return keyboard
     
+    def lobby() -> object:
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_button('Случайная сессия', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Покинуть лобби', color=VkKeyboardColor.NEGATIVE)
+        return keyboard
+    

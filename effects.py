@@ -15,9 +15,8 @@ class Effects:
     
     def beer(player: object, game: object) -> str:
         random.shuffle(game.que)
-        if game.que[0] is True: bullet = '🔴БОЕВОЙ🔴'
+        if game.que.pop(0) is True: bullet = '🔴БОЕВОЙ🔴'
         else: bullet = '⚪ХОЛОСТОЙ⚪'
-        game.que.pop(0)
         (player.inventory).remove('🍺 пиво')
         return f'🍺{player.name}🍺 выпивает банку крепкого и случайным образом перезаряжает ружьё, выранив при этом {bullet} патрон'
     
