@@ -84,7 +84,7 @@ def leaderboard():
                                     WHERE id=?''', (looser[2], looser[3], looser[4], looser[0]))
                 leaderboard_db.commit()
 
-                logger.debug(f'WINNER: {winner[0]} - {winner_rat}-->{winner[2]}; LOOSER: {looser[0]} - {looser_rat[0]}-->{looser[2]}')
+                logger.debug(f'WINNER: {winner[0]} - {winner_rat}-->{winner[2]}; LOOSER: {looser[0]} - {looser_rat}-->{looser[2]}')
 
                 message(winner[0], f'''Поздравляем с победой!
 Ваш текущий рейтинг: {winner[2]} (было: {winner_rat})
@@ -160,8 +160,7 @@ def session(first_id, first_name, second_id, second_name):
             for event in longpoll.listen():
                 if time.time() - msg_time > DELAY_TO_KICK: 
                     double_message(f'🟨🟨🟨{active.name} проигрывает из-за афк!🟨🟨🟨')
-                    admission[first_name] = time.time()
-                    admission[second_name] = time.time()
+                    session_state(passive, active)
                     return
                 if (event.type ==  VkEventType.MESSAGE_NEW and event.to_me 
                     and event.from_user and event.user_id == active.id):
@@ -213,6 +212,7 @@ def session(first_id, first_name, second_id, second_name):
                     break
                 elif event.message == '/сдаться':
                     double_message(f'🟨🟨🟨{active.name} сдаётся и преклоняет колено перед {passive.name}!🟨🟨🟨')
+                    session_state(passive, active)
                     return
 
     if game.first.hp > 0: 
