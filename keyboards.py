@@ -24,3 +24,10 @@ class Keyboard:
         keyboard.add_button('Покинуть лобби', color=VkKeyboardColor.NEGATIVE)
         return keyboard
     
+    def session() -> object:
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_button('Начать игру', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Покинуть сессию', color=VkKeyboardColor.NEGATIVE)
+        return keyboard
+
+    

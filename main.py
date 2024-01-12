@@ -131,6 +131,29 @@ def session(first_id, first_name, second_id, second_name):
             "name": looser.name 
         }})
 
+    count = [False, False]
+    time_ = time.time()
+    message(second_id, f'🟨Ожидаем ответа от {first_name}🟨', keyboard=Keyboard.session())
+    message(first_id, f'🟩Найдена сессия с {second_name}!🟩', keyboard=Keyboard.session())
+    while count != [True, True]:
+        for event in longpoll.listen():
+            if time.time() - time_ > DELAY_TO_KICK:
+                double_message('Время вышло, сессия была завершена без изменения статистики')
+                return 
+            if (event.type ==  VkEventType.MESSAGE_NEW and event.to_me 
+                    and event.from_user):
+                if event.user_id == first_id and event.message == 'Начать игру':
+                    count[0] = True
+                    message(first_id, 'Вы подключены к сесси, ожидаем соперника')
+                    break
+                elif event.user_id == second_id and event.message == 'Начать игру':
+                    count[1] = True
+                    message(second_id, 'Вы подключены к сесси, ожидаем соперника')
+                    break
+                elif (event.user_id == first_id or event.user_id == second_id) and event.message == 'Покинуть сессию':
+                    double_message('Один из участников сессии отказался от участия, сессия была завершена без изменения статистики')
+                    return
+                
     message(second_id, '🟨Вы садитесь за стол, ружьё лежит к вам стволом. Первым ходит противник🟨')
     message(first_id, '🟩Вы садитесь за стол, ружьё лежит к вам прикладом. Первый ход за вами🟩')
     game = Game(first_name, second_name, first_id, second_id)
